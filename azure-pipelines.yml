@@ -55,7 +55,7 @@ steps:
       if [ "$(TEST_ENV)" = "local" ]; then
         npm run api > api.log 2>&1 &
         npm run app > app.log 2>&1 &
-        npm run wait
+        npm run wait || { echo '--- api.log ---'; cat api.log; echo '--- app.log ---'; cat app.log; exit 1; }
       fi
       FILTER=""
       if [ -n "$(echo '${{ parameters.category }}' | xargs)" ]; then FILTER="--filter Category=${{ parameters.category }}"; fi

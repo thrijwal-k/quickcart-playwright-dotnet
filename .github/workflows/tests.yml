@@ -37,7 +37,7 @@ jobs:
         run: |
           npm run api > api.log 2>&1 &
           npm run app > app.log 2>&1 &
-          npm run wait
+          npm run wait || { echo '--- api.log ---'; cat api.log; echo '--- app.log ---'; cat app.log; exit 1; }
           dotnet test QuickCart.Tests/QuickCart.Tests.csproj -c Release --no-build \
             --logger "trx;LogFileName=results.trx" \
             --logger "console;verbosity=normal" \

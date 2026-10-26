@@ -1,6 +1,6 @@
 {
-  "baseUrl": "http://localhost:5173",
-  "apiUrl": "http://localhost:3001",
+  "baseUrl": "http://127.0.0.1:5173",
+  "apiUrl": "http://127.0.0.1:3001",
   "browser": "chromium",
   "headless": true
 }

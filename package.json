@@ -7,7 +7,7 @@
   "scripts": {
     "api": "node server/api.mjs",
     "app": "vite --config app/vite.config.mjs",
-    "wait": "node scripts/wait-for.mjs http://localhost:3001/api/health http://localhost:5173"
+    "wait": "node scripts/wait-for.mjs http://127.0.0.1:3001/api/health http://127.0.0.1:5173"
   },
   "dependencies": {
     "react": "18.3.1",
