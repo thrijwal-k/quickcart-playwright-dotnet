@@ -4,7 +4,9 @@ using RestSharp;
 
 namespace QuickCart.Tests.Api;
 
+// Reqnroll runs NUnit fixtures instance-per-test-case; the API fixtures share one client per fixture instead.
 [TestFixture]
+[FixtureLifeCycle(LifeCycle.SingleInstance)]
 [Category("api")]
 public sealed class OrdersApiTests : ApiTestBase
 {

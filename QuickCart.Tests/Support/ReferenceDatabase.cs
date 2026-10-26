@@ -71,7 +71,12 @@ public static class ReferenceDatabase
             insert.ExecuteNonQuery();
         }
 
-        TestLog.Logger.Information("Reference database seeded with {Count} products", Count("SELECT COUNT(*) FROM products"));
+        using (var count = connection.CreateCommand())
+        {
+            count.CommandText = "SELECT COUNT(*) FROM products";
+            TestLog.Logger.Information("Reference database seeded with {Count} products", Convert.ToInt64(count.ExecuteScalar()));
+        }
+
         return connection;
     }
 }
