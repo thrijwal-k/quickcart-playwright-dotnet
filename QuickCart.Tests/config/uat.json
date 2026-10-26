@@ -1,0 +1,6 @@
+{
+  "baseUrl": "https://uat.quickcart.example",
+  "apiUrl": "https://uat-api.quickcart.example",
+  "browser": "chromium",
+  "headless": true
+}

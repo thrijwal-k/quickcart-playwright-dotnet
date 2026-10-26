@@ -1,0 +1,80 @@
+# Azure DevOps pipeline: builds the Reqnroll + Playwright test project, runs it against the chosen
+# environment and publishes VSTest (.trx) results. Add it as a Build Validation policy on main to
+# make it a PR gate.
+
+trigger:
+  branches:
+    include: [main]
+
+pr:
+  branches:
+    include: [main]
+
+parameters:
+  - name: environment
+    displayName: Test environment
+    type: string
+    default: local
+    values: [local, sit, uat]
+  - name: category
+    displayName: Test category (blank = everything)
+    type: string
+    default: ' '
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  # For SIT / UAT, link a variable group holding BASE_URL, API_URL and service-account secrets, e.g.:
+  # - group: quickcart-${{ parameters.environment }}
+  buildConfiguration: Release
+  TEST_ENV: ${{ parameters.environment }}
+
+steps:
+  - task: UseDotNet@2
+    displayName: Use .NET 8 SDK
+    inputs:
+      packageType: sdk
+      version: 8.0.x
+
+  - task: NodeTool@0
+    displayName: Use Node.js 20 (app under test)
+    inputs:
+      versionSpec: 20.x
+
+  - script: npm ci
+    displayName: Install the app under test
+
+  - script: dotnet build QuickCart.Tests/QuickCart.Tests.csproj -c $(buildConfiguration)
+    displayName: Restore and build
+
+  - pwsh: QuickCart.Tests/bin/$(buildConfiguration)/net8.0/playwright.ps1 install --with-deps chromium
+    displayName: Install Playwright browser
+
+  - bash: |
+      if [ "$(TEST_ENV)" = "local" ]; then
+        npm run api > api.log 2>&1 &
+        npm run app > app.log 2>&1 &
+        npm run wait
+      fi
+      FILTER=""
+      if [ -n "$(echo '${{ parameters.category }}' | xargs)" ]; then FILTER="--filter Category=${{ parameters.category }}"; fi
+      dotnet test QuickCart.Tests/QuickCart.Tests.csproj -c $(buildConfiguration) --no-build $FILTER \
+        --logger "trx;LogFileName=results.trx" --results-directory $(Agent.TempDirectory)/TestResults
+    displayName: Run tests on $(TEST_ENV)
+
+  - task: PublishTestResults@2
+    displayName: Publish test results
+    condition: always()
+    inputs:
+      testResultsFormat: VSTest
+      testResultsFiles: '**/*.trx'
+      searchFolder: $(Agent.TempDirectory)/TestResults
+      testRunTitle: QuickCart $(TEST_ENV)
+
+  - task: PublishPipelineArtifact@1
+    displayName: Publish screenshots, traces and logs
+    condition: always()
+    inputs:
+      targetPath: QuickCart.Tests/bin/$(buildConfiguration)/net8.0
+      artifact: test-artifacts

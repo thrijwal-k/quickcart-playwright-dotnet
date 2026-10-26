@@ -1,0 +1,20 @@
+{
+  "name": "quickcart-app-under-test",
+  "version": "1.0.0",
+  "private": true,
+  "description": "QuickCart ReactJS shop and REST API: the application under test for the .NET Playwright + Reqnroll framework.",
+  "type": "module",
+  "scripts": {
+    "api": "node server/api.mjs",
+    "app": "vite --config app/vite.config.mjs",
+    "wait": "node scripts/wait-for.mjs http://localhost:3001/api/health http://localhost:5173"
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "4.3.4",
+    "vite": "5.4.11"
+  }
+}

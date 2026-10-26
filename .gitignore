@@ -1,0 +1,8 @@
+node_modules/
+bin/
+obj/
+TestResults/
+*.log
+*.trx
+.vs/
+*.user

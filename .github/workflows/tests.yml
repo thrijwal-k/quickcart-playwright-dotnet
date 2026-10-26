@@ -1,0 +1,55 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Official Playwright .NET image: .NET 8 SDK and browsers preinstalled.
+    container:
+      image: mcr.microsoft.com/playwright/dotnet:v1.48.0-noble
+      options: --ipc=host
+    env:
+      HOME: /root
+      TEST_ENV: local
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_NOLOGO: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install the app under test
+        run: npm ci
+
+      - name: Restore and build the test project
+        run: dotnet build QuickCart.Tests/QuickCart.Tests.csproj -c Release
+
+      - name: Start the app and API, then run all tests
+        shell: bash
+        run: |
+          npm run api > api.log 2>&1 &
+          npm run app > app.log 2>&1 &
+          npm run wait
+          dotnet test QuickCart.Tests/QuickCart.Tests.csproj -c Release --no-build \
+            --logger "trx;LogFileName=results.trx" \
+            --logger "console;verbosity=normal" \
+            --results-directory TestResults
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            TestResults/
+            QuickCart.Tests/bin/Release/net8.0/artifacts/
+            QuickCart.Tests/bin/Release/net8.0/logs/
+            *.log
+          retention-days: 14
